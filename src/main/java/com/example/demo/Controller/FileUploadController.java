@@ -9,10 +9,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 @RestController
@@ -26,12 +28,36 @@ public class FileUploadController {
         if (file == null) {
             throw new RuntimeException("You must select the a file for uploading");
         }
+        String name = this.imageUpload(file);
+        return new ResponseEntity<String>(name, HttpStatus.OK);
+    }
 
-        InputStream inputStream = file.getInputStream();
-        String originalName = file.getOriginalFilename();
-        String name = file.getName();
-        String contentType = file.getContentType();
-        long size = file.getSize();
+    @PostMapping("/uploadMultipleData")
+    public ResponseEntity<ArrayList<String>> uploadMultipleData(@RequestParam("files") MultipartFile[] file) throws Exception {
+        if (file.length == 0) {
+            throw new RuntimeException("You must select the a file for uploading");
+        }
+        ArrayList<String> name = new ArrayList<>();
+
+        for (MultipartFile multipartFile : file) {
+           String orName=this.imageUpload(multipartFile);
+           name.add(orName);
+        }
+        return new ResponseEntity<ArrayList<String>>(name, HttpStatus.OK);
+    }
+
+
+    private String imageUpload(MultipartFile multipartFile){
+        InputStream inputStream = null;
+        try {
+            inputStream = multipartFile.getInputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String originalName = multipartFile.getOriginalFilename();
+        String name = multipartFile.getName();
+        String contentType = multipartFile.getContentType();
+        long size = multipartFile.getSize();
         logger.info("inputStream: " + inputStream);
         logger.info("originalName: " + originalName);
         logger.info("name: " + name);
@@ -40,8 +66,8 @@ public class FileUploadController {
         // Do processing with uploaded file data in Service layer
 
         try {
-            byte[] bytes = file.getBytes();
-            Path path = Paths.get(UPLOADED_FOLDER + file.getOriginalFilename());
+            byte[] bytes = multipartFile.getBytes();
+            Path path = Paths.get(UPLOADED_FOLDER + multipartFile.getOriginalFilename());
             Files.write(path, bytes);
 
             logger.info("successful: " + "successful");
@@ -52,7 +78,6 @@ public class FileUploadController {
             e.printStackTrace();
         }
 
-
-        return new ResponseEntity<String>(originalName, HttpStatus.OK);
+        return originalName;
     }
 }
