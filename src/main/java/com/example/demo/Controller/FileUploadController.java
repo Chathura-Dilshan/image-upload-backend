@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 @CrossOrigin(value = "http://localhost:3000")
 public class FileUploadController {
     private static final Logger logger = Logger.getLogger(FileUploadController.class.getName());
-    private static String UPLOADED_FOLDER = "E://temp//";
+    private static String UPLOADED_FOLDER = "E://temp//"; // Change this
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadData(@RequestParam("file") MultipartFile file ) throws Exception {
